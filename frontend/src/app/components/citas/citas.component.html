@@ -1,0 +1,144 @@
+<section id="citas" class="py-5 bg-dark">
+  <div class="container py-lg-4">
+    <div class="text-center mb-5">
+      <span class="text-j3-primary fw-bold text-uppercase tracking-wide small">
+        <i class="bi bi-calendar3 me-1"></i> Reserva en Línea
+      </span>
+      <h2 class="display-5 fw-bold text-white mt-2">AGENDA TU CITA EN J3 MOTORS</h2>
+      <p class="text-secondary mx-auto" style="max-width: 650px;">
+        Evita esperas. Programa el mantenimiento de tu motocicleta con nuestros mecánicos especialistas.
+      </p>
+    </div>
+
+    <div class="row g-5">
+      <!-- Formulario de reserva -->
+      <div class="col-lg-7">
+        <div class="appointment-card p-4 p-md-5">
+          <h3 class="h4 text-white mb-4 border-bottom border-secondary pb-3">
+            <i class="bi bi-pencil-square text-j3-primary me-2"></i> Datos del Servicio y Motocicleta
+          </h3>
+
+          <!-- Alertas -->
+          <div *ngIf="mensajeExito" class="alert alert-success d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+            <div>{{ mensajeExito }}</div>
+          </div>
+
+          <div *ngIf="mensajeError" class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+            <div>{{ mensajeError }}</div>
+          </div>
+
+          <form (ngSubmit)="agendarCita()">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Nombre Completo *</label>
+                <input type="text" class="form-control" [(ngModel)]="nuevaCita.nombreCliente" name="nombreCliente" placeholder="Ej: Juan Pérez" required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Teléfono / WhatsApp *</label>
+                <input type="tel" class="form-control" [(ngModel)]="nuevaCita.telefono" name="telefono" placeholder="Ej: +57 312 000 0000" required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Correo Electrónico</label>
+                <input type="email" class="form-control" [(ngModel)]="nuevaCita.email" name="email" placeholder="juan@ejemplo.com">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Modelo de la Moto *</label>
+                <input type="text" class="form-control" [(ngModel)]="nuevaCita.modeloMoto" name="modeloMoto" placeholder="Ej: Yamaha MT-09, Duke 200" required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Placa / Matrícula</label>
+                <input type="text" class="form-control text-uppercase" [(ngModel)]="nuevaCita.placa" name="placa" placeholder="Ej: JKM-12D">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Servicio Requerido *</label>
+                <select class="form-select" [(ngModel)]="nuevaCita.tipoServicio" name="tipoServicio">
+                  <option *ngFor="let s of serviciosDisponibles" [value]="s.nombre">{{ s.nombre }}</option>
+                  <option value="Otro Servicio / Diagnóstico General">Otro Servicio / Diagnóstico General</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Fecha Preferida *</label>
+                <input type="date" class="form-control" [(ngModel)]="nuevaCita.fechaCita" name="fechaCita" required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Hora Estimada</label>
+                <select class="form-select" [(ngModel)]="nuevaCita.horaCita" name="horaCita">
+                  <option value="08:00 AM">08:00 AM</option>
+                  <option value="10:00 AM">10:00 AM</option>
+                  <option value="01:30 PM">01:30 PM</option>
+                  <option value="03:30 PM">03:30 PM</option>
+                  <option value="05:00 PM">05:00 PM</option>
+                </select>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label">Falla o síntomas de la moto</label>
+                <textarea class="form-control" rows="3" [(ngModel)]="nuevaCita.observaciones" name="observaciones" placeholder="Describe ruidos extraños, fugas, pérdida de potencia..."></textarea>
+              </div>
+
+              <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-j3-primary w-100 py-3 fs-5" [disabled]="enviando">
+                  <span *ngIf="!enviando">
+                    <i class="bi bi-calendar2-check me-2"></i> Confirmar Cita en Taller
+                  </span>
+                  <span *ngIf="enviando">
+                    <span class="spinner-border spinner-border-sm me-2"></span> Registrando Cita en Spring Boot...
+                  </span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Turnos y Próximas Citas -->
+      <div class="col-lg-5">
+        <div class="appointment-card p-4 h-100 d-flex flex-column">
+          <h3 class="h4 text-white mb-3 border-bottom border-secondary pb-3">
+            <i class="bi bi-clock-history text-j3-primary me-2"></i> Turnos en Taller (En Vivo)
+          </h3>
+          <p class="text-secondary small">
+            Visualización en tiempo real sincronizada con el backend Spring Boot.
+          </p>
+
+          <div class="flex-grow-1 overflow-auto pe-1" style="max-height: 480px;">
+            <div *ngIf="citasRegistradas.length === 0" class="text-center py-4 text-secondary">
+              <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+              No hay citas activas registradas en memoria.
+            </div>
+
+            <div *ngFor="let c of citasRegistradas" class="bg-dark p-3 rounded-3 border border-secondary mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="badge bg-j3-primary text-white">#{{ c.id }} - {{ c.estado || 'CONFIRMADA' }}</span>
+                <span class="text-secondary small">
+                  <i class="bi bi-calendar-event me-1"></i> {{ c.fechaCita }} {{ c.horaCita }}
+                </span>
+              </div>
+              <h5 class="text-white fs-6 mb-1">{{ c.modeloMoto }} ({{ c.placa || 'Sin placa' }})</h5>
+              <div class="text-warning small fw-semibold mb-1">{{ c.tipoServicio }}</div>
+              <div class="text-secondary small">Cliente: {{ c.nombreCliente }}</div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-top border-secondary text-center">
+            <div class="text-secondary small">
+              <i class="bi bi-geo-alt-fill text-danger me-1"></i> Calle 45 # 18-20, Zona Moto Racing
+            </div>
+            <div class="text-secondary small mt-1">
+              <i class="bi bi-telephone-fill text-success me-1"></i> Línea directa: (01) 800-J3-MOTO
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
