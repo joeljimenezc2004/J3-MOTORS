@@ -10,7 +10,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/citas")
-@CrossOrigin(origins = "*")
 public class CitaController {
 
     private final CitaService citaService;
@@ -24,9 +23,27 @@ public class CitaController {
         return ResponseEntity.ok(citaService.obtenerTodas());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Cita> obtenerPorId(@PathVariable Long id) {
+        return citaService.obtenerPorId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping
     public ResponseEntity<Cita> registrarCita(@RequestBody Cita nuevaCita) {
         Cita guardada = citaService.registrarCita(nuevaCita);
         return ResponseEntity.status(HttpStatus.CREATED).body(guardada);
+    }
+
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<Cita> actualizarEstado(@PathVariable Long id, @RequestParam String estado) {
+        return ResponseEntity.ok(citaService.actualizarEstado(id, estado));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarCita(@PathVariable Long id) {
+        citaService.eliminarCita(id);
+        return ResponseEntity.noContent().build();
     }
 }

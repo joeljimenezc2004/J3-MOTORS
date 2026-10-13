@@ -1,19 +1,45 @@
 package com.j3motors.model;
 
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "citas")
 public class Cita {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
     private String nombreCliente;
+
+    @Column(nullable = false)
     private String telefono;
+
     private String email;
+
+    @Column(nullable = false)
     private String modeloMoto;
+
+    @Column(nullable = false)
     private String placa;
+
+    @Column(nullable = false)
     private String tipoServicio;
+
+    @Column(nullable = false)
     private String fechaCita;
+
+    @Column(nullable = false)
     private String horaCita;
+
+    @Column(length = 1000)
     private String observaciones;
+
+    @Column(nullable = false)
     private String estado; // PENDIENTE, CONFIRMADA, FINALIZADA
+
     private LocalDateTime fechaCreacion;
 
     public Cita() {
@@ -34,6 +60,16 @@ public class Cita {
         this.fechaCita = fechaCita;
         this.horaCita = horaCita;
         this.observaciones = observaciones;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.fechaCreacion == null) {
+            this.fechaCreacion = LocalDateTime.now();
+        }
+        if (this.estado == null || this.estado.isBlank()) {
+            this.estado = "PENDIENTE";
+        }
     }
 
     public Long getId() {

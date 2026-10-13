@@ -1,11 +1,26 @@
 package com.j3motors.model;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "servicios")
 public class Servicio {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
     private String nombre;
+
+    @Column(length = 1000)
     private String descripcion;
+
+    @Column(nullable = false)
     private Double precioAproximado;
+
     private String duracionEstimada;
+
     private String icono;
 
     public Servicio() {

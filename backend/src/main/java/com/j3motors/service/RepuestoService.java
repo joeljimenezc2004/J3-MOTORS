@@ -1,87 +1,60 @@
 package com.j3motors.service;
 
 import com.j3motors.model.Repuesto;
+import com.j3motors.repository.RepuestoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class RepuestoService {
 
-    private final List<Repuesto> repuestos = new ArrayList<>();
+    private final RepuestoRepository repuestoRepository;
 
-    @PostConstruct
-    public void initData() {
-        repuestos.add(new Repuesto(
-                1L,
-                "Aceite Motul 7100 4T 10W-40 100% Sintético",
-                "Lubricantes",
-                "Motul",
-                19.5,
-                24,
-                "https://images.unsplash.com/photo-1596765851458-1f19f180702d?auto=format&fit=crop&w=400&q=80",
-                "Universal 4 Tiempos (Alto Rendimiento)"
-        ));
-        repuestos.add(new Repuesto(
-                2L,
-                "Pastillas de Freno Sinterizadas Brembo Serie Oro",
-                "Frenos",
-                "Brembo",
-                48.0,
-                15,
-                "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=400&q=80",
-                "Yamaha MT-03, MT-07, R3, Kawasaki Z400"
-        ));
-        repuestos.add(new Repuesto(
-                3L,
-                "Kit de Arrastre DID Cadena Dorada X-Ring 520",
-                "Transmisión",
-                "DID / Sunstar",
-                89.9,
-                8,
-                "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=400&q=80",
-                "KTM Duke 200/250/390, Pulsar NS200"
-        ));
-        repuestos.add(new Repuesto(
-                4L,
-                "Bujía Iridium IX NGK CR9EIX",
-                "Encendido",
-                "NGK",
-                14.0,
-                32,
-                "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=400&q=80",
-                "Universal Alto Rendimiento"
-        ));
-        repuestos.add(new Repuesto(
-                5L,
-                "Filtro de Aceite K&N Rendimiento Pro",
-                "Filtros",
-                "K&N",
-                16.5,
-                20,
-                "https://images.unsplash.com/photo-1616788494707-ec28f08d05a1?auto=format&fit=crop&w=400&q=80",
-                "Kawasaki Ninja/Z, Honda CBR"
-        ));
-        repuestos.add(new Repuesto(
-                6L,
-                "Llantas Michelin Pilot Street 2 (140/70-17)",
-                "Neumáticos",
-                "Michelin",
-                82.0,
-                6,
-                "https://images.unsplash.com/photo-1578844251758-2f71da64c96f?auto=format&fit=crop&w=400&q=80",
-                "Rin 17 Trasero Mediano Cilindraje"
-        ));
+    public RepuestoService(RepuestoRepository repuestoRepository) {
+        this.repuestoRepository = repuestoRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Repuesto> obtenerTodos() {
-        return new ArrayList<>(repuestos);
+        return repuestoRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Optional<Repuesto> obtenerPorId(Long id) {
-        return repuestos.stream().filter(r -> r.getId().equals(id)).findFirst();
+        return repuestoRepository.findById(id);
+    }
+
+    public Repuesto guardar(Repuesto repuesto) {
+        if (repuesto.getNombre() == null || repuesto.getNombre().isBlank()) {
+            throw new IllegalArgumentException("El nombre del repuesto es obligatorio.");
+        }
+        if (repuesto.getPrecio() == null || repuesto.getPrecio() <= 0) {
+            throw new IllegalArgumentException("El precio debe ser mayor a 0.");
+        }
+        if (repuesto.getStock() == null || repuesto.getStock() < 0) {
+            throw new IllegalArgumentException("El stock no puede ser negativo.");
+        }
+        return repuestoRepository.save(repuesto);
+    }
+
+    public Repuesto actualizarStock(Long id, int cantidad) {
+        Repuesto repuesto = repuestoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Repuesto no encontrado con id: " + id));
+        if (repuesto.getStock() + cantidad < 0) {
+            throw new IllegalArgumentException("Stock insuficiente para el repuesto: " + repuesto.getNombre());
+        }
+        repuesto.setStock(repuesto.getStock() + cantidad);
+        return repuestoRepository.save(repuesto);
+    }
+
+    public void eliminar(Long id) {
+        if (!repuestoRepository.existsById(id)) {
+            throw new IllegalArgumentException("Repuesto no encontrado con id: " + id);
+        }
+        repuestoRepository.deleteById(id);
     }
 }

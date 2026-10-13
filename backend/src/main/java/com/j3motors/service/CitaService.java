@@ -1,74 +1,60 @@
 package com.j3motors.service;
 
 import com.j3motors.model.Cita;
+import com.j3motors.repository.CitaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Optional;
 
 @Service
+@Transactional
 public class CitaService {
 
-    private final List<Cita> citas = Collections.synchronizedList(new ArrayList<>());
-    private final AtomicLong idGenerator = new AtomicLong(1);
+    private final CitaRepository citaRepository;
 
-    @PostConstruct
-    public void initData() {
-        registrarCita(new Cita(
-                null,
-                "Carlos Mendoza",
-                "+57 310 456 7890",
-                "carlos.mendoza@email.com",
-                "Yamaha MT-07",
-                "ABC-12E",
-                "Mantenimiento General Preventivo",
-                "2026-09-15",
-                "09:00",
-                "Revisar sonido en cadena y cambio de aceite sintético 10W-40."
-        ));
-
-        registrarCita(new Cita(
-                null,
-                "Valeria Ramírez",
-                "+57 320 890 1234",
-                "valeria.r@email.com",
-                "KTM Duke 390",
-                "XYZ-89F",
-                "Sincronización y Diagnóstico Computarizado",
-                "2026-09-16",
-                "11:30",
-                "Testigo de Check Engine encendido intermitente."
-        ));
-
-        registrarCita(new Cita(
-                null,
-                "Andrés Gómez",
-                "+57 301 234 5678",
-                "andres.gomez@email.com",
-                "Kawasaki Ninja 400",
-                "JKD-34D",
-                "Sistema de Frenos y Suspensión",
-                "2026-09-18",
-                "14:00",
-                "Purgado de líquido de freno y pastillas sinterizadas."
-        ));
+    public CitaService(CitaRepository citaRepository) {
+        this.citaRepository = citaRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Cita> obtenerTodas() {
-        synchronized (citas) {
-            return new ArrayList<>(citas);
-        }
+        return citaRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Cita> obtenerPorId(Long id) {
+        return citaRepository.findById(id);
     }
 
     public Cita registrarCita(Cita nuevaCita) {
-        nuevaCita.setId(idGenerator.getAndIncrement());
-        if (nuevaCita.getEstado() == null || nuevaCita.getEstado().isBlank()) {
-            nuevaCita.setEstado("CONFIRMADA");
+        if (nuevaCita.getNombreCliente() == null || nuevaCita.getNombreCliente().isBlank()) {
+            throw new IllegalArgumentException("El nombre del cliente es obligatorio.");
         }
-        citas.add(nuevaCita);
-        return nuevaCita;
+        if (nuevaCita.getTelefono() == null || nuevaCita.getTelefono().isBlank()) {
+            throw new IllegalArgumentException("El teléfono es obligatorio.");
+        }
+        if (nuevaCita.getPlaca() == null || nuevaCita.getPlaca().isBlank()) {
+            throw new IllegalArgumentException("La placa de la motocicleta es obligatoria.");
+        }
+        if (nuevaCita.getEstado() == null || nuevaCita.getEstado().isBlank()) {
+            nuevaCita.setEstado("PENDIENTE");
+        }
+        return citaRepository.save(nuevaCita);
+    }
+
+    public Cita actualizarEstado(Long id, String nuevoEstado) {
+        Cita cita = citaRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Cita no encontrada con id: " + id));
+        cita.setEstado(nuevoEstado);
+        return citaRepository.save(cita);
+    }
+
+    public void eliminarCita(Long id) {
+        if (!citaRepository.existsById(id)) {
+            throw new IllegalArgumentException("Cita no encontrada con id: " + id);
+        }
+        citaRepository.deleteById(id);
     }
 }

@@ -1,0 +1,22 @@
+# Maven
+target/
+**/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Node / Angular
+node_modules/
+**/node_modules/
+.angular/
+**/.angular/
+dist/
+**/dist/
+
+# IDE & Editor
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
