@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { J3MotorsService } from '../../services/j3motors.service';
+import { AuthService } from '../../services/auth.service'; 
 import { Cita, Servicio } from '../../models/models';
 
 @Component({
@@ -37,6 +38,7 @@ import { Cita, Servicio } from '../../models/models';
 export class CitasComponent implements OnInit {
   serviciosDisponibles: Servicio[] = [];
   citasRegistradas: Cita[] = [];
+  esAdmin = false; 
 
   nuevaCita: Cita = {
     nombreCliente: '',
@@ -44,9 +46,9 @@ export class CitasComponent implements OnInit {
     email: '',
     modeloMoto: '',
     placa: '',
-    tipoServicio: '',
+    tipoServicio: 'Otro Servicio / Diagnóstico General', // Valor por defecto seguro
     fechaCita: '',
-    horaCita: '',
+    horaCita: '08:00 AM',
     observaciones: ''
   };
 
@@ -54,9 +56,13 @@ export class CitasComponent implements OnInit {
   mensajeExito = '';
   mensajeError = '';
 
-  constructor(private j3Service: J3MotorsService) {}
+  constructor(
+    private j3Service: J3MotorsService,
+    private authService: AuthService 
+  ) {}
 
   ngOnInit(): void {
+    this.esAdmin = this.authService.hasRole('ROLE_ADMIN');
     this.cargarServicios();
     this.cargarCitas();
   }
@@ -65,17 +71,23 @@ export class CitasComponent implements OnInit {
     this.j3Service.getServicios().subscribe({
       next: (data) => {
         this.serviciosDisponibles = data;
-        if (data.length > 0) {
-          this.nuevaCita.tipoServicio = data[0].nombre;
+        // 👇 CORREGIDO: Leemos el nombre del primer elemento del array de forma segura
+        if (data && data.length > 0) {
+          this.nuevaCita.tipoServicio = data[0].nombre; 
         }
-      }
+      },
+      error: (err) => console.error("Error al cargar servicios:", err)
     });
   }
 
   cargarCitas(): void {
     this.j3Service.getCitas().subscribe({
       next: (data) => {
-        this.citasRegistradas = data;
+        // 👇 Sincroniza los datos reales del backend con la lista del HTML
+        this.citasRegistradas = data; 
+      },
+      error: (err) => {
+        console.error("Error al conectar con las citas de Spring Boot:", err);
       }
     });
   }
@@ -93,18 +105,21 @@ export class CitasComponent implements OnInit {
     this.j3Service.registrarCita(this.nuevaCita).subscribe({
       next: (citaCreada) => {
         this.enviando = false;
-        this.mensajeExito = `¡Cita agendada con éxito! Código de turno #${citaCreada.id || 'J3-OK'}. Te contactaremos a ${citaCreada.telefono}.`;
+        this.mensajeExito = `¡Cita agendada con éxito! Código de turno #${citaCreada.id || 'J3-OK'}.`;
+        
+        // Añadimos la nueva cita al inicio de la lista para ver el cambio inmediato
         this.citasRegistradas.unshift(citaCreada);
-        // Reset form
+        
+        // Reset del formulario
         this.nuevaCita = {
           nombreCliente: '',
           telefono: '',
           email: '',
           modeloMoto: '',
           placa: '',
-          tipoServicio: this.serviciosDisponibles.length > 0 ? this.serviciosDisponibles[0].nombre : '',
+          tipoServicio: this.serviciosDisponibles.length > 0 ? this.serviciosDisponibles[0].nombre : 'Otro Servicio / Diagnóstico General',
           fechaCita: '',
-          horaCita: '',
+          horaCita: '08:00 AM',
           observaciones: ''
         };
       },

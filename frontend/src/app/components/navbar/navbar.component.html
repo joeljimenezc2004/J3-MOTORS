@@ -1,32 +1,40 @@
-<nav class="navbar navbar-expand-lg navbar-dark sticky-top py-3">
-  <div class="container">
-    <a class="navbar-brand d-flex align-items-center gap-2 brand-font fs-3" href="#">
-      <i class="bi bi-speedometer2 text-j3-primary fs-2"></i>
-      <span>J3 <span class="logo-badge">MOTORS</span></span>
-    </a>
-    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
-        <li class="nav-item">
-          <a class="nav-link text-uppercase" href="#inicio">Inicio</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-uppercase" href="#servicios">Servicios</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-uppercase" href="#repuestos">Repuestos</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-uppercase" href="#nosotros">Taller</a>
-        </li>
-        <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
-          <a class="btn btn-j3-primary d-inline-flex align-items-center gap-2" href="#citas">
-            <i class="bi bi-calendar-check"></i> Agendar Cita
-          </a>
-        </li>
-      </ul>
-    </div>
+<nav class="navbar" style="display: flex; justify-content: space-between; padding: 15px; background-color: #1a1a1a; color: white; align-items: center;">
+  
+  <!-- Enlaces izquierdos del Taller -->
+  <div class="nav-links" style="display: flex; gap: 20px;">
+    <a routerLink="/inicio" style="color: white; text-decoration: none; font-weight: bold;">J3 Motors</a>
+    <a routerLink="/inicio" fragment="servicios" style="color: #ccc; text-decoration: none;">Servicios</a>
+    <a routerLink="/inicio" fragment="repuestos" style="color: #ccc; text-decoration: none;">Repuestos</a>
+  </div>
+
+  <!-- Enlaces derechos de la Cuenta de Usuario -->
+  <div class="auth-buttons" style="display: flex; gap: 15px; align-items: center;">
+    
+    <!-- 1. VISTA ANÓNIMA: Se muestra si NO ha iniciado sesión -->
+    <ng-container *ngIf="!isLogged">
+      <button routerLink="/login" style="padding: 8px 16px; background: transparent; color: white; border: 1px solid white; border-radius: 4px; cursor: pointer;">
+        Iniciar Sesión
+      </button>
+      <button routerLink="/register" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        Registrarse
+      </button>
+    </ng-container>
+
+    <!-- 2. VISTA LOGUEADA: Se muestra SI YA inició sesión -->
+    <ng-container *ngIf="isLogged">
+      <span style="font-weight: bold; color: #28a745;">Hola, {{ nombreUsuario }}</span>
+      
+      <!-- BOTÓN PROTEGIDO: Solo aparece en pantalla si el usuario inició sesión con cuenta de Administrador -->
+<button *ngIf="esAdmin" routerLink="/admin" style="padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+  Modificar Datos (Admin)
+</button>
+
+
+      <button (click)="onLogout()" style="padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        Salir
+      </button>
+    </ng-container>
+
   </div>
 </nav>
+

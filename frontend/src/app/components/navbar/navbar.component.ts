@@ -1,32 +1,36 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule],
-  templateUrl: './navbar.component.html',
-  styles: [`
-    .navbar {
-      background-color: rgba(15, 17, 21, 0.95);
-      backdrop-filter: blur(10px);
-      border-bottom: 2px solid #ff5500;
-    }
-    .nav-link {
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      transition: color 0.2s;
-    }
-    .nav-link:hover {
-      color: #ff5500 !important;
-    }
-    .logo-badge {
-      background: #ff5500;
-      color: #000;
-      font-weight: 800;
-      padding: 2px 8px;
-      border-radius: 4px;
-    }
-  `]
+  imports: [CommonModule, RouterModule],
+  templateUrl: './navbar.component.html'
+  // 👈 Borramos la línea de styleUrls para que no busque ningún archivo externo
 })
-export class NavbarComponent {}
+export class NavbarComponent implements OnInit {
+
+  isLogged = false;
+  nombreUsuario = '';
+  esAdmin = false;
+
+  constructor(private authService: AuthService, private router: Router) {}
+
+  ngOnInit(): void {
+    // Escucha en tiempo real si el usuario inicia o cierra sesión
+    this.authService.isLoggedIn().subscribe(status => {
+      this.isLogged = status;
+      if (status) {
+        this.nombreUsuario = this.authService.getNombreUsuario() || '';
+        this.esAdmin = this.authService.hasRole('ROLE_ADMIN'); // Verifica si tiene rol de administrador
+      }
+    });
+  }
+
+  onLogout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']); // Te manda al login al salir
+  }
+}

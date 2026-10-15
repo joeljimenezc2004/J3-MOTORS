@@ -1,66 +1,175 @@
 <section id="repuestos" class="py-5" style="background-color: #12141a;">
   <div class="container py-lg-4">
+    
+    <!-- ENCABEZADO COMÚN PARA AMBAS VISTAS -->
     <div class="row align-items-end mb-5">
       <div class="col-md-8">
         <span class="text-j3-primary fw-bold text-uppercase tracking-wide small">
           <i class="bi bi-box-seam me-1"></i> Almacén & Repuestos
         </span>
-        <h2 class="display-5 fw-bold text-white mt-2">REPUESTOS Y LUBRICANTES</h2>
+        <h2 class="display-5 fw-bold text-white mt-2">
+          {{ esAdmin ? 'PANEL DE INVENTARIO (ADMIN)' : 'REPUESTOS Y LUBRICANTES' }}
+        </h2>
         <p class="text-secondary mb-0">
-          Piezas originales y de alto rendimiento de las mejores marcas del mercado internacional.
+          {{ esAdmin ? 'Panel de control exclusivo para modificar stock, añadir piezas y ajustar precios.' : 'Piezas originales y de alto rendimiento de las mejores marcas del mercado internacional.' }}
         </p>
       </div>
       <div class="col-md-4 text-md-end mt-3 mt-md-0">
-        <span class="badge bg-dark border border-secondary px-3 py-2 text-warning fs-6">
+        <!-- Si es admin, mostramos el botón para añadir nuevos productos -->
+        <button *ngIf="esAdmin" (click)="agregarRepuesto()" class="btn btn-success fw-bold px-3 py-2">
+          <i class="bi bi-plus-circle me-1"></i> Añadir Nuevo Repuesto
+        </button>
+        <!-- Si es cliente, se queda el badge de stock normal -->
+        <span *ngIf="!esAdmin" class="badge bg-dark border border-secondary px-3 py-2 text-warning fs-6">
           <i class="bi bi-check-circle me-1"></i> Stock en Tiempo Real
         </span>
       </div>
     </div>
 
-    <!-- Spinner si está cargando -->
-    <div *ngIf="cargando" class="text-center py-5">
+    <!-- Spinner si está cargando (sirve para ambos roles) -->
+    <div class="text-center py-5" *ngIf="cargando">
       <div class="spinner-border text-j3-primary" role="status">
         <span class="visually-hidden">Cargando repuestos...</span>
       </div>
       <p class="text-secondary mt-2">Consultando inventario en Spring Boot...</p>
     </div>
 
-    <!-- Grid de Repuestos -->
-    <div *ngIf="!cargando" class="row g-4">
-      <div *ngFor="let repuesto of repuestos" class="col-md-6 col-lg-3">
-        <div class="card bg-j3-card h-100 border rounded-3 position-relative overflow-hidden card-hover-effect">
-          <span class="badge bg-success badge-stock" *ngIf="repuesto.stock > 0">
-            Stock: {{ repuesto.stock }} u.
-          </span>
-          <span class="badge bg-danger badge-stock" *ngIf="repuesto.stock === 0">
-            Agotado
-          </span>
+    <!-- CUANDO EL SERVIDOR YA CARGÓ LOS DATOS (!cargando) -->
+    <ng-container *ngIf="!cargando">
 
-          <img [src]="repuesto.imagenUrl" [alt]="repuesto.nombre" class="repuesto-img card-img-top">
+      <!-- ================= VISTA 1: EXCLUSIVA PARA EL ADMINISTRADOR ================= -->
+      <div class="table-responsive rounded-3 border border-secondary overflow-hidden" *ngIf="esAdmin">
+        <table class="table table-dark table-hover mb-0 align-middle" style="background-color: #1a1c23;">
+          <thead>
+            <tr style="color: #ff5722; border-bottom: 2px solid #333;">
+              <th class="p-3">Categoría</th>
+              <th class="p-3">Repuesto</th>
+              <th class="p-3">Marca</th>
+              <th class="p-3">Compatibilidad</th>
+              <th class="p-3">Precio</th>
+              <th class="p-3">Stock</th>
+              <th class="p-3 text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of repuestos" style="border-bottom: 1px solid #2d313f;">
+              <td class="p-3">
+                <span class="badge bg-dark text-j3-primary border border-secondary">{{ item.categoria }}</span>
+              </td>
+              <td class="p-3 fw-bold text-white">{{ item.nombre }}</td>
+              <td class="p-3 text-secondary">{{ item.marca }}</td>
+              <td class="p-3 text-secondary small">{{ item.compatibilidad }}</td>
+              <td class="p-3 fw-bold text-success">S/{{ item.precio }}</td>
+              <td class="p-3">
+                <span class="badge" [ngClass]="item.stock > 0 ? 'bg-success' : 'bg-danger'">
+                  {{ item.stock > 0 ? item.stock + ' u.' : 'Agotado' }}
+                </span>
+              </td>
+              <td class="p-3 text-center">
+                <div class="d-flex gap-2 justify-content-center">
+                  <button (click)="editarPrecio(item)" class="btn btn-sm btn-warning fw-bold text-dark">
+                    <i class="bi bi-pencil-square"></i> Modificar
+                  </button>
+                  <button (click)="eliminarRepuesto(item)" class="btn btn-sm btn-danger fw-bold">
+                    <i class="bi bi-trash"></i> Eliminar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-          <div class="card-body d-flex flex-column p-3">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="badge bg-dark text-j3-primary border border-secondary">{{ repuesto.categoria }}</span>
-              <span class="text-secondary small fw-bold">{{ repuesto.marca }}</span>
-            </div>
+      <!-- ================= VISTA 2: NORMAL PARA CLIENTES / VISITANTES ================= -->
+      <div class="row g-4" *ngIf="!esAdmin">
+        <div *ngFor="let repuesto of repuestos" class="col-md-6 col-lg-3">
+          <div class="card bg-j3-card h-100 border rounded-3 position-relative overflow-hidden card-hover-effect">
+            <span class="badge bg-success badge-stock" *ngIf="repuesto.stock > 0">
+              Stock: {{ repuesto.stock }} u.
+            </span>
+            <span class="badge bg-danger badge-stock" *ngIf="repuesto.stock === 0">
+              Agotado
+            </span>
 
-            <h5 class="card-title text-white fs-6 mt-2 mb-2 flex-grow-1">
-              {{ repuesto.nombre }}
-            </h5>
+            <img [src]="repuesto.imagenUrl" [alt]="repuesto.nombre" class="repuesto-img card-img-top">
 
-            <p class="text-secondary small mb-3">
-              <i class="bi bi-info-circle me-1 text-j3-primary"></i> {{ repuesto.compatibilidad }}
-            </p>
+            <div class="card-body d-flex flex-column p-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="badge bg-dark text-j3-primary border border-secondary">{{ repuesto.categoria }}</span>
+                <span class="text-secondary small fw-bold">{{ repuesto.marca }}</span>
+              </div>
 
-            <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary">
-              <span class="fs-5 fw-bold text-white">S/{{ repuesto.precio }} </span>
-              <a href="#citas" class="btn btn-sm btn-j3-outline">
-                <i class="bi bi-cart-plus"></i> Cotizar
-              </a>
+              <h5 class="card-title text-white fs-6 mt-2 mb-2 flex-grow-1">
+                {{ repuesto.nombre }}
+              </h5>
+
+              <p class="text-secondary small mb-3">
+                <i class="bi bi-info-circle me-1 text-j3-primary"></i> {{ repuesto.compatibilidad }}
+              </p>
+
+              <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary">
+                <span class="fs-5 fw-bold text-white">S/{{ repuesto.precio }} </span>
+                <a href="#citas" class="btn btn-sm btn-j3-outline">
+                  <i class="bi bi-cart-plus"></i> Cotizar
+                </a>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+    </ng-container>
+  </div>
+
+  <!-- VENTANA MODAL FLOTANTE PARA MODIFICAR DATOS (ADMIN) -->
+  <div *ngIf="mostrarModalEdicion" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+    <div style="background-color: #1a1c23; padding: 25px; border-radius: 8px; width: 90%; max-width: 450px; border: 1px solid #333; color: white;">
+      <h3 style="color: #ff5722; margin-top: 0; font-weight: bold; margin-bottom: 15px;">Modificar Repuesto</h3>
+      <p style="color: #ccc; font-size: 14px;">Editar propiedades de: <strong>{{ repuestoSeleccionado.nombre }}</strong></p>
+      
+      <form (ngSubmit)="guardarCambiosAdmin()">
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Precio Venta (S/):</label>
+          <input type="number" name="precio" [(ngModel)]="repuestoSeleccionado.precio" step="0.1" required style="width: 100%; padding: 8px; background-color: #2b2e3c; border: 1px solid #444; color: white; border-radius: 4px;">
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;">Unidades en Almacén (Stock):</label>
+          <input type="number" name="stock" [(ngModel)]="repuestoSeleccionado.stock" required style="width: 100%; padding: 8px; background-color: #2b2e3c; border: 1px solid #444; color: white; border-radius: 4px;">
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" (click)="cerrarModal()" style="padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Cancelar
+          </button>
+          <button type="submit" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
     </div>
   </div>
-</section>
+
+  <!-- VENTANA MODAL FLOTANTE PARA AÑADIR NUEVO REPUESTO (ADMIN) -->
+  <div *ngIf="mostrarModalCreacion" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+    <div style="background-color: #1a1c23; padding: 25px; border-radius: 8px; width: 90%; max-width: 500px; border: 1px solid #333; color: white; max-height: 90vh; overflow-y: auto;">
+      <h3 style="color: #28a745; margin-top: 0; font-weight: bold; margin-bottom: 15px;">Añadir Nuevo Repuesto</h3>
+      
+      <form (ngSubmit)="guardarNuevoRepuesto()">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; margin-bottom: 4px; font-weight: bold; font-size: 14px;">Nombre del Repuesto:</label>
+          <input type="text" name="nombre" [(ngModel)]="nuevoRepuesto.nombre" required placeholder="Ej. Filtro de Aire K&N" style="width: 100%; padding: 8px; background-color: #2b2e3c; border: 1px solid #444; color: white; border-radius: 4px;">
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+          <div style="flex: 1;">
+            <label style="display: block; margin-bottom: 4px; font-weight: bold; font-size: 14px;">Categoría:</label>
+            <input type="text" name="categoria" [(ngModel)]="nuevoRepuesto.categoria" required placeholder="Ej. Filtros" style="width: 100%; padding: 8px; background-color: #2b2e3c; border: 1px solid #444; color: white; border-radius: 4px;">
+          </div>
+          <div style="flex: 1;">
+            <label style="display: block; margin-bottom: 4px; font-weight: bold; font-size: 14px;">Marca:</label>
+            <input type="text" name="marca" [(ngModel)]="nuevoRepuesto.marca" required placeholder="Ej. K&N" style="width: 100%; padding: 8px; background-color: #2b2e3c; border: 1px solid #444; color: white; border-radius: 4px;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">

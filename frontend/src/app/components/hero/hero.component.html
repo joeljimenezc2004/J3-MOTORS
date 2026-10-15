@@ -14,10 +14,13 @@
         </p>
         
         <div class="d-flex flex-wrap gap-3 mb-5">
-          <a href="#citas" class="btn btn-j3-primary btn-lg d-inline-flex align-items-center gap-2">
+          <!-- 🛠️ BOTÓN 1 CORREGIDO: Agendar Revisión -->
+          <a routerLink="/inicio" fragment="citas" class="btn btn-j3-primary btn-lg d-inline-flex align-items-center gap-2" style="cursor: pointer;">
             <i class="bi bi-wrench"></i> Agendar Revisión
           </a>
-          <a href="#servicios" class="btn btn-j3-outline btn-lg d-inline-flex align-items-center gap-2">
+          
+          <!-- 🛠️ BOTÓN 2 CORREGIDO: Ver Servicios -->
+          <a routerLink="/inicio" fragment="servicios" class="btn btn-j3-outline btn-lg d-inline-flex align-items-center gap-2" style="cursor: pointer;">
             <i class="bi bi-gear"></i> Ver Servicios
           </a>
         </div>

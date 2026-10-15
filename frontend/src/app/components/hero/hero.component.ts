@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router'; // 👈 1. IMPORTANTE: Agregamos la importación aquí
 
 @Component({
   selector: 'app-hero',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule], // 👈 2. MODIFICADO: Añadimos RouterModule a la lista de permisos
   templateUrl: './hero.component.html',
   styles: [`
     .hero-section {
