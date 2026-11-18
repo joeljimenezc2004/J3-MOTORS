@@ -35,9 +35,9 @@ public class AuthController {
     private final JwtTokenProvider tokenProvider;
 
     public AuthController(AuthenticationManager authenticationManager,
-                          UsuarioRepository usuarioRepository,
-                          PasswordEncoder passwordEncoder,
-                          JwtTokenProvider tokenProvider) {
+            UsuarioRepository usuarioRepository,
+            PasswordEncoder passwordEncoder,
+            JwtTokenProvider tokenProvider) {
         this.authenticationManager = authenticationManager;
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
@@ -49,9 +49,7 @@ public class AuthController {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
+                        loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = tokenProvider.generarToken(authentication);
@@ -70,8 +68,7 @@ public class AuthController {
                 usuario.getUsername(),
                 usuario.getEmail(),
                 usuario.getNombreCompleto(),
-                roles
-        ));
+                roles));
     }
 
     @PostMapping("/register")
@@ -107,8 +104,7 @@ public class AuthController {
                 passwordEncoder.encode(registerRequest.getPassword()),
                 registerRequest.getNombreCompleto(),
                 registerRequest.getEmail(),
-                roles
-        );
+                roles);
 
         usuarioRepository.save(nuevoUsuario);
 

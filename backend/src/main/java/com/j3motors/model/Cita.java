@@ -48,7 +48,7 @@ public class Cita {
     }
 
     public Cita(Long id, String nombreCliente, String telefono, String email, String modeloMoto, String placa,
-                String tipoServicio, String fechaCita, String horaCita, String observaciones) {
+            String tipoServicio, String fechaCita, String horaCita, String observaciones) {
         this();
         this.id = id;
         this.nombreCliente = nombreCliente;
